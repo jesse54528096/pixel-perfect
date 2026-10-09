@@ -28,4 +28,5 @@ npm run dev
 This is a static Vite + React single-page app. `vite build` writes the site to `dist/`, and
 `vercel.json` rewrites every non-asset path to `index.html` so deep links such as `/app` are
 handled by React Router in the browser. The Supabase client reads `VITE_SUPABASE_URL` and
-`VITE_SUPABASE_PUBLISHABLE_KEY` at build time.
+`VITE_SUPABASE_PUBLISHABLE_KEY` at build time, from `.env` locally. Add the same two variables in
+the Vercel project's Environment Variables settings.
