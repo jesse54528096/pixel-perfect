@@ -1,22 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router";
 import { AudioLines, Timer, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { Reveal } from "@/components/Reveal";
+import { PageMeta } from "@/components/PageMeta";
 
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Video Speed Reader — Transcripts in three minutes" },
-      { name: "description", content: "Upload your video, get a clean, accurate transcript in three minutes. Chinese and English supported." },
-      { property: "og:title", content: "Video Speed Reader — Transcripts in three minutes" },
-      { property: "og:description", content: "Upload your video, get a clean, accurate transcript in three minutes." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: Index,
-});
 
 const features = [
   { icon: AudioLines, title: "高準確度逐字稿", en: "High-accuracy transcripts", body: "Powered by OpenAI Whisper. Supports Chinese and English." },
@@ -24,9 +12,15 @@ const features = [
   { icon: ShieldCheck, title: "可商用授權", en: "Commercial-use ready", body: "You own the output. Use it however you like." },
 ];
 
-function Index() {
+export default function Index() {
   return (
     <div className="flex min-h-screen flex-col">
+      <PageMeta
+        title="Video Speed Reader — Transcripts in three minutes"
+        description="Upload your video, get a clean, accurate transcript in three minutes. Chinese and English supported."
+        ogDescription="Upload your video, get a clean, accurate transcript in three minutes."
+        twitterCard="summary_large_image"
+      />
       <header className="sticky top-0 z-20 border-b bg-background/70 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Logo />

@@ -1,37 +1,27 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { PageMeta } from "@/components/PageMeta";
+import { useAuthUser } from "@/components/RequireAuth";
 
-export const Route = createFileRoute("/_authenticated/app")({
-  head: () => ({
-    meta: [
-      { title: "Dashboard — Video Speed Reader" },
-      { name: "description", content: "Your Video Speed Reader dashboard." },
-      { property: "og:title", content: "Dashboard — Video Speed Reader" },
-      { property: "og:description", content: "Your Video Speed Reader dashboard." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
-  component: AppPage,
-});
-
-function AppPage() {
-  const { user } = Route.useRouteContext();
+export default function AppPage() {
+  const user = useAuthUser();
   const navigate = useNavigate();
-  const { queryClient } = Route.useRouteContext();
+  const queryClient = useQueryClient();
 
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    navigate("/auth", { replace: true });
   }
 
   return (
     <div className="flex min-h-screen flex-col">
+      <PageMeta title="Dashboard — Video Speed Reader" description="Your Video Speed Reader dashboard." />
       <header className="border-b">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Logo />
