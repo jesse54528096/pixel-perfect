@@ -14,7 +14,82 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      jobs: {
+        Row: {
+          id: string
+          user_id: string
+          created_at: string
+          updated_at: string
+          video_source_url: string
+          topic: string | null
+          language: string
+          status: "pending" | "downloading" | "transcribe" | "done"
+          current_session_id: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          created_at?: string
+          updated_at?: string
+          video_source_url: string
+          topic?: string | null
+          language?: string
+          status?: "pending" | "downloading" | "transcribe" | "done"
+          current_session_id?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          created_at?: string
+          updated_at?: string
+          video_source_url?: string
+          topic?: string | null
+          language?: string
+          status?: "pending" | "downloading" | "transcribe" | "done"
+          current_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_current_session"
+            columns: ["current_session_id"]
+            isOneToOne: false
+            referencedRelation: "job_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_sessions: {
+        Row: {
+          id: string
+          job_id: string
+          session_number: number
+          created_at: string
+          subtitle_txt_content: string | null
+        }
+        Insert: {
+          id?: string
+          job_id: string
+          session_number?: number
+          created_at?: string
+          subtitle_txt_content?: string | null
+        }
+        Update: {
+          id?: string
+          job_id?: string
+          session_number?: number
+          created_at?: string
+          subtitle_txt_content?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_sessions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
