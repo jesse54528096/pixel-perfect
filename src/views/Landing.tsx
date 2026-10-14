@@ -1,9 +1,10 @@
-import { Link } from "react-router";
+"use client";
+
+import Link from "next/link";
 import { AudioLines, Timer, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { Reveal } from "@/components/Reveal";
-import { PageMeta } from "@/components/PageMeta";
 
 
 const features = [
@@ -15,17 +16,11 @@ const features = [
 export default function Index() {
   return (
     <div className="flex min-h-screen flex-col">
-      <PageMeta
-        title="Video Speed Reader — Transcripts in three minutes"
-        description="Upload your video, get a clean, accurate transcript in three minutes. Chinese and English supported."
-        ogDescription="Upload your video, get a clean, accurate transcript in three minutes."
-        twitterCard="summary_large_image"
-      />
       <header className="sticky top-0 z-20 border-b bg-background/70 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Logo />
           <Button asChild>
-            <Link to="/auth">Sign in / 登入</Link>
+            <Link href="/sign-in">Sign in / 登入</Link>
           </Button>
         </div>
       </header>
@@ -46,7 +41,7 @@ export default function Index() {
             </Reveal>
             <Reveal delay={240}>
               <Button asChild size="lg" className="mt-10 shadow-glow">
-                <Link to="/signup">Get started free</Link>
+                <Link href="/sign-up">Get started free</Link>
               </Button>
             </Reveal>
           </div>
