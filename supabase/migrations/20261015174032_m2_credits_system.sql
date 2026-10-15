@@ -94,17 +94,11 @@ begin
 end;
 $$;
 
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
+create or replace trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- 5. New job status: insufficient_credits (keeps M1's four statuses)
-alter table public.jobs drop constraint if exists jobs_status_check;
-alter table public.jobs add constraint jobs_status_check
-  check (status in ('pending', 'downloading', 'transcribe', 'done', 'insufficient_credits'));
-
--- 6. Backfill signup_bonus ledger rows for users created before this migration
+-- 5. Backfill signup_bonus ledger rows for users created before this migration
 insert into public.credit_transactions (user_id, amount, type, description)
 select u.id, 30, 'signup_bonus', 'Welcome bonus — 30 free credits (backfilled)'
 from auth.users u
