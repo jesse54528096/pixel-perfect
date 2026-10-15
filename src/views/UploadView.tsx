@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Download } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { CreditsBadge } from "@/components/CreditsBadge";
 import { UploadForm } from "@/components/UploadForm";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -12,21 +13,25 @@ const statusStyles: Record<JobRow["status"], string> = {
   downloading: "bg-muted text-muted-foreground",
   transcribe: "bg-blue-500/15 text-blue-400",
   done: "bg-green-500/15 text-green-400",
+  insufficient_credits: "bg-amber-500/15 text-amber-400",
 };
 
 function truncate(url: string, max = 50) {
   return url.length > max ? `${url.slice(0, max)}…` : url;
 }
 
-export default function UploadView({ jobs }: { jobs: JobRow[] }) {
+export default function UploadView({ jobs, balance }: { jobs: JobRow[]; balance: number }) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Logo />
-          <Link href="/app" className="text-sm text-muted-foreground hover:text-foreground">
-            Dashboard
-          </Link>
+          <div className="flex items-center gap-4">
+            <CreditsBadge balance={balance} />
+            <Link href="/app" className="text-sm text-muted-foreground hover:text-foreground">
+              Dashboard
+            </Link>
+          </div>
         </div>
       </header>
       <main className="relative flex-1">
@@ -60,7 +65,7 @@ export default function UploadView({ jobs }: { jobs: JobRow[] }) {
                         </td>
                         <td className="px-4 py-3">
                           <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[job.status]}`}>
-                            {job.status}
+                            {job.status === "insufficient_credits" ? "not enough credits" : job.status}
                           </span>
                         </td>
                         <td className="px-4 py-3">

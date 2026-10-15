@@ -31,6 +31,20 @@ export async function POST(req: Request) {
     process.env.SUPABASE_SECRET_KEY!
   )
 
+  // 3. Fast pre-check: block submits with no credits at all. The worker does the
+  // precise duration-vs-balance check once it knows the video length.
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('credits_balance')
+    .eq('id', user.id)
+    .single()
+  if (!profile || Number(profile.credits_balance) < 1) {
+    return NextResponse.json(
+      { error: 'insufficient credits — please buy more at /credits' },
+      { status: 402 }
+    )
+  }
+
   const { data: job, error: jobErr } = await admin
     .from('jobs')
     .insert({

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,11 +13,13 @@ export function UploadForm() {
   const [topic, setTopic] = useState("");
   const [language, setLanguage] = useState("zh");
   const [error, setError] = useState<string | null>(null);
+  const [noCredits, setNoCredits] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setNoCredits(false);
     setLoading(true);
     try {
       const res = await fetch("/api/jobs", {
@@ -24,6 +27,10 @@ export function UploadForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ video_source_url: videoUrl, topic: topic || null, language }),
       });
+      if (res.status === 402) {
+        setNoCredits(true);
+        return;
+      }
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         setError(body.error ?? `Request failed (${res.status})`);
@@ -76,6 +83,14 @@ export function UploadForm() {
           <option value="ja">ja</option>
         </select>
       </div>
+      {noCredits && (
+        <p className="text-sm text-destructive">
+          You don&apos;t have enough credits.{" "}
+          <Link href="/credits" className="underline">
+            Buy credits
+          </Link>
+        </p>
+      )}
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Button type="submit" disabled={loading}>
         {loading ? "Submitting…" : "Transcribe"}
