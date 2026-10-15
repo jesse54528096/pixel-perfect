@@ -15,5 +15,11 @@ export default async function AppPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
 
-  return <Dashboard email={user.email ?? ""} />;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("credits_balance")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return <Dashboard email={user.email ?? ""} balance={Number(profile?.credits_balance ?? 0)} />;
 }

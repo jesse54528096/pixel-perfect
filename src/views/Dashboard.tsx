@@ -6,8 +6,9 @@ import { LogOut, Upload } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { CreditsBadge } from "@/components/CreditsBadge";
 
-export default function Dashboard({ email }: { email: string }) {
+export default function Dashboard({ email, balance }: { email: string; balance: number }) {
   const router = useRouter();
 
   async function signOut() {
@@ -22,6 +23,7 @@ export default function Dashboard({ email }: { email: string }) {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Logo />
           <div className="flex items-center gap-2">
+            <CreditsBadge balance={balance} />
             <Button asChild>
               <Link href="/upload">
                 <Upload className="h-4 w-4" /> Upload

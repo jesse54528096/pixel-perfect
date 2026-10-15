@@ -23,7 +23,7 @@ export type Database = {
           video_source_url: string
           topic: string | null
           language: string
-          status: "pending" | "downloading" | "transcribe" | "done"
+          status: "pending" | "downloading" | "transcribe" | "done" | "insufficient_credits"
           current_session_id: string | null
         }
         Insert: {
@@ -34,7 +34,7 @@ export type Database = {
           video_source_url: string
           topic?: string | null
           language?: string
-          status?: "pending" | "downloading" | "transcribe" | "done"
+          status?: "pending" | "downloading" | "transcribe" | "done" | "insufficient_credits"
           current_session_id?: string | null
         }
         Update: {
@@ -45,7 +45,7 @@ export type Database = {
           video_source_url?: string
           topic?: string | null
           language?: string
-          status?: "pending" | "downloading" | "transcribe" | "done"
+          status?: "pending" | "downloading" | "transcribe" | "done" | "insufficient_credits"
           current_session_id?: string | null
         }
         Relationships: [
@@ -89,6 +89,101 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          id: string
+          role: string
+          email: string | null
+          created_at: string
+          credits_balance: number
+        }
+        Insert: {
+          id: string
+          role?: string
+          email?: string | null
+          created_at?: string
+          credits_balance?: number
+        }
+        Update: {
+          id?: string
+          role?: string
+          email?: string | null
+          created_at?: string
+          credits_balance?: number
+        }
+        Relationships: []
+      }
+      credit_transactions: {
+        Row: {
+          id: string
+          user_id: string
+          amount: number
+          type: "purchase" | "deduction" | "signup_bonus" | "admin_grant"
+          description: string | null
+          job_id: string | null
+          stripe_payment_intent_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          amount: number
+          type: "purchase" | "deduction" | "signup_bonus" | "admin_grant"
+          description?: string | null
+          job_id?: string | null
+          stripe_payment_intent_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          amount?: number
+          type?: "purchase" | "deduction" | "signup_bonus" | "admin_grant"
+          description?: string | null
+          job_id?: string | null
+          stripe_payment_intent_id?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_products: {
+        Row: {
+          id: string
+          name: string
+          credits: number
+          price_usd: number
+          stripe_price_id: string | null
+          active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          credits: number
+          price_usd: number
+          stripe_price_id?: string | null
+          active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          credits?: number
+          price_usd?: number
+          stripe_price_id?: string | null
+          active?: boolean
+          created_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {

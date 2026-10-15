@@ -23,5 +23,11 @@ export default async function UploadPage() {
     .order("created_at", { ascending: false })
     .limit(20);
 
-  return <UploadView jobs={jobs ?? []} />;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("credits_balance")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return <UploadView jobs={jobs ?? []} balance={Number(profile?.credits_balance ?? 0)} />;
 }
