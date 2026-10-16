@@ -6,10 +6,13 @@ M2: before Whisper, compares the video length (1 credit per started minute)
 with profiles.credits_balance and stops with status 'insufficient_credits' when
 the user can't pay. Credits are only deducted once the job reaches 'done'.
 
-Started by distributor.py (one Popen per pending job). Reads JOB_ID from env.
-Reads OPENAI_API_KEY / SUPABASE_URL / SUPABASE_SECRET_KEY from AWS Secrets
-Manager — the EC2's IAM instance profile grants `secretsmanager:GetSecretValue`
-on exactly those three secret names, so no credentials ever live on disk.
+Started by distributor.py (one Popen per pending job) on the M1 EC2, or as one
+ECS Fargate task per job by the M4 Lambda distributor. Reads JOB_ID from env.
+
+Credentials: on Fargate (M4), OPENAI_API_KEY / SUPABASE_URL / SUPABASE_SECRET_KEY
+arrive as env vars from the Lambda's RunTask override, so the task role needs no
+AWS permissions. On the EC2 (M1) they're read from AWS Secrets Manager via the
+instance profile, so no credentials ever live on disk.
 """
 import os
 import sys
@@ -29,8 +32,13 @@ def _get_secret(client, name: str) -> str:
     return client.get_secret_value(SecretId=name)["SecretString"]
 
 
+SECRET_KEYS = ("OPENAI_API_KEY", "SUPABASE_URL", "SUPABASE_SECRET_KEY")
+
+
 def _load_secrets() -> dict[str, str]:
-    """Pull the three M1 secrets from AWS Secrets Manager."""
+    """Env first (M4 Fargate), else the three M1 secrets from AWS Secrets Manager."""
+    if all(os.environ.get(k) for k in SECRET_KEYS):
+        return {k: os.environ[k] for k in SECRET_KEYS}
     sm = boto3.client("secretsmanager")
     return {
         "OPENAI_API_KEY": _get_secret(sm, "openai-api-key"),
