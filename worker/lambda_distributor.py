@@ -4,15 +4,16 @@ M1 EC2 distributor.py loop.
 
 Each tick: find jobs with status='pending', make sure each has a linked
 job_sessions row, and launch one ECS Fargate task per session that has no
-fargate_task_arn yet. The ARN is written right after RunTask, so the next tick
-skips it (the Lambda is stateless; the DB column is the idempotency).
+fargate_task_arn yet. The session is claimed first (fargate_task_arn set from
+NULL to a placeholder in one conditional UPDATE), so two overlapping ticks can't
+both spawn it; the real ARN replaces the placeholder right after RunTask (the
+Lambda is stateless; the DB column is the idempotency).
 
 Credentials: SUPABASE_URL / SUPABASE_SECRET_KEY / OPENAI_API_KEY are read from
 AWS Secrets Manager (the Lambda role can read exactly those three secrets) and
 forwarded to the Fargate task as env vars, so the task role stays empty.
 
-Deployed with the AWS API (zip), not by CodeBuild; the Lambda's reserved
-concurrency is 1 so two ticks never spawn the same job.
+Deployed with the AWS API (zip), not by CodeBuild.
 """
 import os
 
@@ -24,6 +25,8 @@ SECRET_NAMES = {
     "SUPABASE_SECRET_KEY": "supabase-secret-key",
     "OPENAI_API_KEY": "openai-api-key",
 }
+
+CLAIMED = "claimed"  # placeholder while RunTask is in flight
 
 ecs = boto3.client("ecs")
 _secrets: dict[str, str] | None = None
@@ -87,13 +90,20 @@ def handler(event, context):
     spawned = []
     for job in jobs:
         session_id = _ensure_session(db, job)
-        session = (db.table("job_sessions").select("fargate_task_arn")
-                   .eq("id", session_id).single().execute().data)
-        if session.get("fargate_task_arn"):
-            continue  # already spawned on an earlier tick
-        arn = _run_task(job["id"], secrets)
-        if arn is None:
-            continue  # retried next tick
+        claimed = (db.table("job_sessions").update({"fargate_task_arn": CLAIMED})
+                   .eq("id", session_id).is_("fargate_task_arn", "null")
+                   .execute().data)
+        if not claimed:
+            continue  # already spawned (or being spawned) by another tick
+        try:
+            arn = _run_task(job["id"], secrets)
+        except Exception as e:
+            print(f"[{job['id']}] run_task error: {e}")
+            arn = None
+        if arn is None:  # release the claim so the next tick retries
+            db.table("job_sessions").update(
+                {"fargate_task_arn": None}).eq("id", session_id).execute()
+            continue
         db.table("job_sessions").update(
             {"fargate_task_arn": arn}).eq("id", session_id).execute()
         print(f"[{job['id']}] spawned {arn}")
